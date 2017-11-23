@@ -30,10 +30,26 @@
 }
 
 - (instancetype)initWithFrame:(CGRect)frame loadingStyle:(GKLoadingStyle)loadingStyle {
-    if (self = [super initWithFrame:frame]) {
+    if (self = [super initWithFrame:frame]) {        
         self.loadingStyle = loadingStyle;
+        
+        self.centerButton = [UIButton new];
+        [self addSubview:self.centerButton];
     }
     return self;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    // centerButton必须保持在loadingView内部
+    CGFloat btnWH = self.radius * 2 - self.lineWidth;
+    
+    self.centerButton.bounds = CGRectMake(0, 0, btnWH, btnWH);
+    self.centerButton.center = CGPointMake(self.bounds.size.width * 0.5, self.bounds.size.height * 0.5);
+    
+    self.centerButton.layer.cornerRadius  = btnWH * 0.5;
+    self.centerButton.layer.masksToBounds = YES;
 }
 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
@@ -172,8 +188,10 @@
 - (void)setLineWidth:(CGFloat)lineWidth {
     _lineWidth = lineWidth;
     
-    self.animatedLayer.lineWidth = lineWidth;
+    self.animatedLayer.lineWidth   = lineWidth;
     self.backgroundLayer.lineWidth = lineWidth;
+    
+    [self layoutIfNeeded];
 }
 
 - (void)setRadius:(CGFloat)radius {
@@ -190,6 +208,8 @@
             [self layoutAnimatedLayer];
         }
     }
+    
+    [self layoutIfNeeded];
 }
 
 - (void)setTrackColor:(UIColor *)trackColor {

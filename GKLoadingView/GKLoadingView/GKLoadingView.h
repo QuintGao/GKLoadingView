@@ -13,9 +13,11 @@ typedef NS_ENUM(NSUInteger, GKLoadingStyle) {
     GKLoadingStyleDeterminate     // 明确的加载方式--进度条
 };
 
-@interface GKLoadingView : UIButton
+@interface GKLoadingView : UIView
 
 + (instancetype)loadingViewWithFrame:(CGRect)frame style:(GKLoadingStyle)style;
+
+@property (nonatomic, strong) UIButton *centerButton;
 
 /** 线条宽度 */
 @property (nonatomic, assign) CGFloat lineWidth;
