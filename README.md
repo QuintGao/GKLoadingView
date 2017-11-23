@@ -2,4 +2,4 @@
 
 ## 效果图
 
-![loading]()
+![loading](https://github.com/QuintGao/GKLoadingView/blob/master/loading.gif)
