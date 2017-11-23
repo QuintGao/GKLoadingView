@@ -72,7 +72,6 @@
     [self.loadingView3.centerButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
     self.loadingView3.centerButton.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.3];
     
-    
     [self.loadingView3 startLoadingWithDuration:5.0 completion:^(GKLoadingView *loadingView, BOOL finished) {
         [loadingView.centerButton setTitle:@"完成" forState:UIControlStateNormal];
     }];
