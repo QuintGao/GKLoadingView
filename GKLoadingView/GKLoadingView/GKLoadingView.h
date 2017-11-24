@@ -40,6 +40,10 @@ typedef NS_ENUM(NSUInteger, GKLoadingStyle) {
 // 在duration时间内加载，
 - (void)startLoadingWithDuration:(NSTimeInterval)duration completion:(void (^)(GKLoadingView *loadingView, BOOL finished))completion;
 
+- (void)startLoading;
+
+- (void)stopLoading;
+
 - (void)hideLoadingView;
 
 @end

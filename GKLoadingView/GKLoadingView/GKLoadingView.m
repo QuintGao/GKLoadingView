@@ -167,15 +167,6 @@
                                                               endAngle:M_PI_2 - M_PI_4
                                                              clockwise:YES];
     layer.path = smoothedPath.CGPath;
-    
-    CABasicAnimation *rotateAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-    rotateAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-    rotateAnimation.fromValue   = @0;
-    rotateAnimation.toValue     = @(M_PI * 2);
-    rotateAnimation.duration    = 0.8;
-    rotateAnimation.repeatCount = HUGE;
-    rotateAnimation.removedOnCompletion = NO;
-    [layer addAnimation:rotateAnimation forKey:nil];
 }
 
 - (void)setupIndeterminateMaskAnim:(CAShapeLayer *)layer {
@@ -194,37 +185,6 @@
     maskLayer.contents  = (__bridge id)[[UIImage imageNamed:@"angle-mask"] CGImage];
     maskLayer.frame     = layer.bounds;
     layer.mask          = maskLayer;
-    
-    NSTimeInterval animationDuration   = 1;
-    CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-    
-    CABasicAnimation *animation   = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-    animation.fromValue           = @0;
-    animation.toValue             = @(M_PI * 2);
-    animation.duration            = animationDuration;
-    animation.timingFunction      = linearCurve;
-    animation.removedOnCompletion = NO;
-    animation.repeatCount         = HUGE;
-    animation.fillMode            = kCAFillModeForwards;
-    animation.autoreverses        = NO;
-    [layer.mask addAnimation:animation forKey:@"rotate"];
-    
-    CAAnimationGroup *animationGroup    = [CAAnimationGroup animation];
-    animationGroup.duration             = animationDuration;
-    animationGroup.repeatCount          = HUGE;
-    animationGroup.removedOnCompletion  = NO;
-    animationGroup.timingFunction       = linearCurve;
-    
-    CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
-    strokeStartAnimation.fromValue = @0.015;
-    strokeStartAnimation.toValue   = @0.515;
-    
-    CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-    strokeEndAnimation.fromValue = @0.485;
-    strokeEndAnimation.toValue   = @0.985;
-    
-    animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
-    [layer addAnimation:animationGroup forKey:@"progress"];
 }
 
 - (void)setupDeterminateAnim:(CAShapeLayer *)layer {
@@ -320,6 +280,55 @@
     pathAnimation.removedOnCompletion   = YES;
     pathAnimation.delegate              = self;
     [self.animatedLayer addAnimation:pathAnimation forKey:nil];
+}
+
+- (void)startLoading {
+    if (self.loadingStyle == GKLoadingStyleIndeterminate) {
+        CABasicAnimation *rotateAnimation   = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+        rotateAnimation.timingFunction      = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        rotateAnimation.fromValue           = @0;
+        rotateAnimation.toValue             = @(M_PI * 2);
+        rotateAnimation.duration            = 0.8;
+        rotateAnimation.repeatCount         = HUGE;
+        rotateAnimation.removedOnCompletion = NO;
+        [self.animatedLayer addAnimation:rotateAnimation forKey:nil];
+        
+    }else if (self.loadingStyle == GKLoadingStyleIndeterminateMask) {
+        NSTimeInterval animationDuration   = 1;
+        CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        
+        CABasicAnimation *animation   = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+        animation.fromValue           = @0;
+        animation.toValue             = @(M_PI * 2);
+        animation.duration            = animationDuration;
+        animation.timingFunction      = linearCurve;
+        animation.removedOnCompletion = NO;
+        animation.repeatCount         = HUGE;
+        animation.fillMode            = kCAFillModeForwards;
+        animation.autoreverses        = NO;
+        [self.animatedLayer.mask addAnimation:animation forKey:@"rotate"];
+        
+        CAAnimationGroup *animationGroup    = [CAAnimationGroup animation];
+        animationGroup.duration             = animationDuration;
+        animationGroup.repeatCount          = HUGE;
+        animationGroup.removedOnCompletion  = NO;
+        animationGroup.timingFunction       = linearCurve;
+        
+        CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+        strokeStartAnimation.fromValue = @0.015;
+        strokeStartAnimation.toValue   = @0.515;
+        
+        CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        strokeEndAnimation.fromValue = @0.485;
+        strokeEndAnimation.toValue   = @0.985;
+        
+        animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
+        [self.animatedLayer addAnimation:animationGroup forKey:@"progress"];
+    }
+}
+
+- (void)stopLoading {
+    [self hideLoadingView];
 }
 
 - (void)hideLoadingView {

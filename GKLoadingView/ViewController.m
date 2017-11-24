@@ -45,6 +45,7 @@
 //    self.loadingView1.radius        = 30;
     [self.view addSubview:self.loadingView1];
     [self.loadingView1.centerButton setImage:[UIImage imageNamed:@"dzq"] forState:UIControlStateNormal];
+    [self.loadingView1 startLoading];
     
     loadingFrame.origin.y += 100;
     
@@ -82,6 +83,8 @@
     self.loadingView4 = [GKLoadingView loadingViewWithFrame:loadingFrame style:GKLoadingStyleIndeterminateMask];
     
     [self.view addSubview:self.loadingView4];
+    
+    [self.loadingView4 startLoading];
 }
 
 - (void)timerAction {
