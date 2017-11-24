@@ -30,11 +30,19 @@
 }
 
 - (instancetype)initWithFrame:(CGRect)frame loadingStyle:(GKLoadingStyle)loadingStyle {
-    if (self = [super initWithFrame:frame]) {        
-        self.loadingStyle = loadingStyle;
+    if (self = [super initWithFrame:frame]) {
+        self.backgroundColor = [UIColor clearColor];
         
-        self.centerButton = [UIButton new];
+        self.loadingStyle   = loadingStyle;
+        
+        self.centerButton   = [UIButton new];
         [self addSubview:self.centerButton];
+        
+        // 设置默认值
+        self.lineWidth      = 4;
+        self.radius         = 24;
+        self.bgColor        = [[UIColor blackColor] colorWithAlphaComponent:0.5];
+        self.strokeColor    = [UIColor whiteColor];
     }
     return self;
 }
@@ -46,7 +54,7 @@
     CGFloat btnWH = self.radius * 2 - self.lineWidth;
     
     self.centerButton.bounds = CGRectMake(0, 0, btnWH, btnWH);
-    self.centerButton.center = CGPointMake(self.bounds.size.width * 0.5, self.bounds.size.height * 0.5);
+    self.centerButton.center = CGPointMake(CGRectGetWidth(self.bounds) * 0.5, CGRectGetHeight(self.bounds) * 0.5);
     
     self.centerButton.layer.cornerRadius  = btnWH * 0.5;
     self.centerButton.layer.masksToBounds = YES;
@@ -58,6 +66,9 @@
     }else {
         [self.animatedLayer removeFromSuperlayer];
         self.animatedLayer = nil;
+        
+        [self.backgroundLayer removeFromSuperlayer];
+        self.backgroundLayer = nil;
     }
 }
 
@@ -65,89 +76,59 @@
     CALayer *layer = self.animatedLayer;
     [self.layer addSublayer:layer];
     
-    CGFloat widthDiff = CGRectGetWidth(self.bounds) - CGRectGetWidth(layer.bounds);
-    CGFloat heightDiff = CGRectGetHeight(self.bounds) - CGRectGetHeight(layer.bounds);
+    CGFloat viewW   = CGRectGetWidth(self.bounds);
+    CGFloat viewH   = CGRectGetHeight(self.bounds);
+    CGFloat layerW  = CGRectGetWidth(layer.bounds);
+    CGFloat layerH  = CGRectGetHeight(layer.bounds);
     
-    CGFloat positionX = CGRectGetWidth(self.bounds) - CGRectGetWidth(layer.bounds) / 2 - widthDiff / 2;
-    CGFloat positionY = CGRectGetHeight(self.bounds) - CGRectGetHeight(layer.bounds) / 2 - heightDiff / 2;
+    CGFloat widthDiff  = viewW - layerW;
+    CGFloat heightDiff = viewH - layerH;
+    
+    CGFloat positionX  = viewW - layerW * 0.5 - widthDiff * 0.5;
+    CGFloat positionY  = viewH - layerH * 0.5 - heightDiff * 0.5;
     
     layer.position = CGPointMake(positionX, positionY);
-    
-    if (self.backgroundLayer) {
-        self.backgroundLayer.position = layer.position;
+
+    self.backgroundLayer.position = layer.position;
+}
+
+#pragma mark - 懒加载
+- (UIButton *)centerButton {
+    if (!_centerButton) {
+        _centerButton = [UIButton new];
     }
+    return _centerButton;
 }
 
 - (CAShapeLayer *)animatedLayer {
     if (!_animatedLayer) {
-        CGFloat centerXY = self.radius + self.lineWidth * 0.5 + 5;
         
-        if (self.loadingStyle == GKLoadingStyleIndeterminate) {
-            CGPoint arcCenter = CGPointMake(centerXY, centerXY);
-            UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter radius:self.radius startAngle:(CGFloat)(M_PI * 3 / 2) endAngle:(CGFloat)(M_PI / 2 + M_PI * 5) clockwise:YES];
-            
-            _animatedLayer = [CAShapeLayer layer];
-            _animatedLayer.contentsScale = [UIScreen mainScreen].scale;
-            _animatedLayer.frame = CGRectMake(0.0f, 0.0f, arcCenter.x * 2, arcCenter.y * 2);
-            _animatedLayer.fillColor   = [UIColor clearColor].CGColor;
-            _animatedLayer.strokeColor = self.trackColor.CGColor;
-            _animatedLayer.lineWidth   = self.lineWidth;
-            _animatedLayer.lineCap     = kCALineCapRound;
-            _animatedLayer.lineJoin    = kCALineJoinBevel;
-            _animatedLayer.path        = smoothedPath.CGPath;
-            
-            CALayer *maskLayer = [CALayer layer];
-            
-            maskLayer.contents = (__bridge id)[[UIImage imageNamed:@"angle-mask"] CGImage];
-            maskLayer.frame = _animatedLayer.bounds;
-            _animatedLayer.mask = maskLayer;
-            
-            NSTimeInterval animationDuration = 1;
-            CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-            
-            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-            animation.fromValue           = (id) 0;
-            animation.toValue             = @(M_PI * 2);
-            animation.duration            = animationDuration;
-            animation.timingFunction      = linearCurve;
-            animation.removedOnCompletion = NO;
-            animation.repeatCount         = INFINITY;
-            animation.fillMode            = kCAFillModeForwards;
-            animation.autoreverses        = NO;
-            [_animatedLayer.mask addAnimation:animation forKey:@"rotate"];
-            
-            CAAnimationGroup *animationGroup    = [CAAnimationGroup animation];
-            animationGroup.duration             = animationDuration;
-            animationGroup.repeatCount          = INFINITY;
-            animationGroup.removedOnCompletion  = NO;
-            animationGroup.timingFunction       = linearCurve;
-            
-            CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
-            strokeStartAnimation.fromValue = @0.015;
-            strokeStartAnimation.toValue   = @0.515;
-            
-            CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-            strokeEndAnimation.fromValue = @0.485;
-            strokeEndAnimation.toValue   = @0.985;
-            
-            animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
-            [_animatedLayer addAnimation:animationGroup forKey:@"progress"];
-        }else {
-            CGPoint arcCenter = CGPointMake(centerXY, centerXY);
-            UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter radius:self.radius startAngle:(CGFloat)-M_PI_2 endAngle:(CGFloat)(M_PI + M_PI_2) clockwise:YES];
-            
-            [self.layer addSublayer:self.backgroundLayer];
-            
-            _animatedLayer = [CAShapeLayer layer];
-            _animatedLayer.contentsScale = [UIScreen mainScreen].scale;
-            _animatedLayer.frame         = CGRectMake(0.0f, 0.0f, arcCenter.x * 2, arcCenter.y * 2);
-            _animatedLayer.fillColor     = [UIColor clearColor].CGColor;
-            _animatedLayer.strokeColor   = self.progressColor.CGColor;
-            _animatedLayer.lineWidth     = self.lineWidth;
-            _animatedLayer.lineCap       = kCALineCapRound;
-            _animatedLayer.lineJoin      = kCALineJoinBevel;
-            _animatedLayer.path          = smoothedPath.CGPath;
-            _animatedLayer.strokeEnd     = 0.0f;
+        [self.layer addSublayer:self.backgroundLayer];
+        
+        CGPoint arcCenter = [self layerCenter];
+        
+        _animatedLayer               = [CAShapeLayer layer];
+        _animatedLayer.contentsScale = [UIScreen mainScreen].scale;
+        _animatedLayer.frame         = CGRectMake(0, 0, arcCenter.x * 2, arcCenter.y * 2);
+        _animatedLayer.fillColor     = [UIColor clearColor].CGColor;
+        _animatedLayer.strokeColor   = self.strokeColor.CGColor;
+        _animatedLayer.lineWidth     = self.lineWidth;
+        _animatedLayer.lineCap       = kCALineCapRound;
+        _animatedLayer.lineJoin      = kCALineJoinBevel;
+        
+        switch (self.loadingStyle) {
+            case GKLoadingStyleIndeterminate:
+                [self setupIndeterminateAnim:_animatedLayer];
+                break;
+            case GKLoadingStyleIndeterminateMask:
+                [self setupIndeterminateMaskAnim:_animatedLayer];
+                break;
+            case GKLoadingStyleDeterminate:
+                [self setupDeterminateAnim:_animatedLayer];
+                break;
+                
+            default:
+                break;
         }
     }
     return _animatedLayer;
@@ -155,17 +136,19 @@
 
 - (CAShapeLayer *)backgroundLayer {
     if (!_backgroundLayer) {
+        CGPoint arcCenter = [self layerCenter];
         
-        CGFloat centerXY = self.radius + self.lineWidth * 0.5 + 5;
-        
-        CGPoint arcCenter = CGPointMake(centerXY, centerXY);
-        UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter radius:self.radius startAngle:(CGFloat)-M_PI_2 endAngle:(CGFloat)(M_PI + M_PI_2) clockwise:YES];
+        UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter
+                                                                    radius:self.radius
+                                                                startAngle:-M_PI_2
+                                                                  endAngle:M_PI + M_PI_2
+                                                                 clockwise:YES];
         
         _backgroundLayer               = [CAShapeLayer layer];
         _backgroundLayer.contentsScale = [UIScreen mainScreen].scale;
         _backgroundLayer.frame         = CGRectMake(0.0f, 0.0f, arcCenter.x * 2, arcCenter.y * 2);
         _backgroundLayer.fillColor     = [UIColor clearColor].CGColor;
-        _backgroundLayer.strokeColor   = self.trackColor.CGColor;
+        _backgroundLayer.strokeColor   = self.bgColor.CGColor;
         _backgroundLayer.lineWidth     = self.lineWidth;
         _backgroundLayer.lineCap       = kCALineCapRound;
         _backgroundLayer.lineJoin      = kCALineJoinBevel;
@@ -173,6 +156,87 @@
         _backgroundLayer.strokeEnd     = 1.0f;
     }
     return _backgroundLayer;
+}
+
+- (void)setupIndeterminateAnim:(CAShapeLayer *)layer {
+    CGPoint arcCenter = [self layerCenter];
+    
+    UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter
+                                                                radius:self.radius
+                                                            startAngle:-M_PI_2
+                                                              endAngle:M_PI_2 - M_PI_4
+                                                             clockwise:YES];
+    layer.path = smoothedPath.CGPath;
+    
+    CABasicAnimation *rotateAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+    rotateAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+    rotateAnimation.fromValue   = @0;
+    rotateAnimation.toValue     = @(M_PI * 2);
+    rotateAnimation.duration    = 0.8;
+    rotateAnimation.repeatCount = HUGE;
+    rotateAnimation.removedOnCompletion = NO;
+    [layer addAnimation:rotateAnimation forKey:nil];
+}
+
+- (void)setupIndeterminateMaskAnim:(CAShapeLayer *)layer {
+    CGPoint arcCenter = [self layerCenter];
+    
+    UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter
+                                                                radius:self.radius
+                                                            startAngle:(M_PI * 3 / 2)
+                                                              endAngle:(M_PI / 2 + M_PI * 5)
+                                                             clockwise:YES];
+    
+    layer.path = smoothedPath.CGPath;
+    
+    CALayer *maskLayer = [CALayer layer];
+    
+    maskLayer.contents  = (__bridge id)[[UIImage imageNamed:@"angle-mask"] CGImage];
+    maskLayer.frame     = layer.bounds;
+    layer.mask          = maskLayer;
+    
+    NSTimeInterval animationDuration   = 1;
+    CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+    
+    CABasicAnimation *animation   = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+    animation.fromValue           = @0;
+    animation.toValue             = @(M_PI * 2);
+    animation.duration            = animationDuration;
+    animation.timingFunction      = linearCurve;
+    animation.removedOnCompletion = NO;
+    animation.repeatCount         = HUGE;
+    animation.fillMode            = kCAFillModeForwards;
+    animation.autoreverses        = NO;
+    [layer.mask addAnimation:animation forKey:@"rotate"];
+    
+    CAAnimationGroup *animationGroup    = [CAAnimationGroup animation];
+    animationGroup.duration             = animationDuration;
+    animationGroup.repeatCount          = HUGE;
+    animationGroup.removedOnCompletion  = NO;
+    animationGroup.timingFunction       = linearCurve;
+    
+    CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+    strokeStartAnimation.fromValue = @0.015;
+    strokeStartAnimation.toValue   = @0.515;
+    
+    CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+    strokeEndAnimation.fromValue = @0.485;
+    strokeEndAnimation.toValue   = @0.985;
+    
+    animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
+    [layer addAnimation:animationGroup forKey:@"progress"];
+}
+
+- (void)setupDeterminateAnim:(CAShapeLayer *)layer {
+    CGPoint arcCenter = [self layerCenter];
+    
+    UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter
+                                                                radius:self.radius
+                                                            startAngle:-M_PI_2
+                                                              endAngle:(M_PI + M_PI_2)
+                                                             clockwise:YES];
+    layer.path      = smoothedPath.CGPath;
+    layer.strokeEnd = 0.0f;
 }
 
 - (void)setFrame:(CGRect)frame {
@@ -212,22 +276,16 @@
     [self layoutIfNeeded];
 }
 
-- (void)setTrackColor:(UIColor *)trackColor {
-    _trackColor = trackColor;
+- (void)setBgColor:(UIColor *)bgColor {
+    _bgColor = bgColor;
     
-    if (self.loadingStyle == GKLoadingStyleIndeterminate) {
-        self.animatedLayer.strokeColor = trackColor.CGColor;
-    }else {
-        self.backgroundLayer.strokeColor = trackColor.CGColor;
-    }
+    self.backgroundLayer.strokeColor = bgColor.CGColor;
 }
 
-- (void)setProgressColor:(UIColor *)progressColor {
-    _progressColor = progressColor;
+- (void)setStrokeColor:(UIColor *)strokeColor {
+    _strokeColor = strokeColor;
     
-    if (self.loadingStyle == GKLoadingStyleDeterminate) {
-        self.animatedLayer.strokeColor = progressColor.CGColor;
-    }
+    self.animatedLayer.strokeColor = strokeColor.CGColor;
 }
 
 - (void)setProgress:(CGFloat)progress {
@@ -241,7 +299,13 @@
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-    return CGSizeMake((self.radius + self.lineWidth / 2 + 5) * 2, (self.radius + self.lineWidth / 2 + 5) * 2);
+    CGFloat wh = (self.radius + self.lineWidth * 0.5 + 5 ) * 2;
+    return CGSizeMake(wh, wh);
+}
+
+- (CGPoint)layerCenter {
+    CGFloat xy = self.radius + self.lineWidth * 0.5 + 5;
+    return CGPointMake(xy, xy);
 }
 
 - (void)startLoadingWithDuration:(NSTimeInterval)duration completion:(void (^)(GKLoadingView *, BOOL))completion {
@@ -256,6 +320,11 @@
     pathAnimation.removedOnCompletion   = YES;
     pathAnimation.delegate              = self;
     [self.animatedLayer addAnimation:pathAnimation forKey:nil];
+}
+
+- (void)hideLoadingView {
+    [self.layer removeAllAnimations];
+    [self removeFromSuperview];
 }
 
 #pragma mark - CAAnimationDelegate

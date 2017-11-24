@@ -9,8 +9,9 @@
 #import <UIKit/UIKit.h>
 
 typedef NS_ENUM(NSUInteger, GKLoadingStyle) {
-    GKLoadingStyleIndeterminate,  // 不明确的加载方式
-    GKLoadingStyleDeterminate     // 明确的加载方式--进度条
+    GKLoadingStyleIndeterminate,      // 不明确的加载方式
+    GKLoadingStyleIndeterminateMask,  // 不明确的加载方式带阴影
+    GKLoadingStyleDeterminate         // 明确的加载方式--进度条
 };
 
 @interface GKLoadingView : UIView
@@ -19,17 +20,17 @@ typedef NS_ENUM(NSUInteger, GKLoadingStyle) {
 
 @property (nonatomic, strong) UIButton *centerButton;
 
-/** 线条宽度 */
+/** 线条宽度：默认4 */
 @property (nonatomic, assign) CGFloat lineWidth;
 
-/** 圆弧半径 */
+/** 圆弧半径：默认24 */
 @property (nonatomic, assign) CGFloat radius;
 
-/** 圆弧的填充路径颜色 */
-@property (nonatomic, strong) UIColor *trackColor;
+/** 圆弧的背景颜色：默认半透明黑色 */
+@property (nonatomic, strong) UIColor *bgColor;
 
-/** 进度的颜色 */
-@property (nonatomic, strong) UIColor *progressColor;
+/** 进度的颜色：默认白色 */
+@property (nonatomic, strong) UIColor *strokeColor;
 
 /** 进度，loadingStyle为GKLoadingStyleDeterminate时使用 */
 @property (nonatomic, assign) CGFloat progress;
@@ -38,5 +39,7 @@ typedef NS_ENUM(NSUInteger, GKLoadingStyle) {
 
 // 在duration时间内加载，
 - (void)startLoadingWithDuration:(NSTimeInterval)duration completion:(void (^)(GKLoadingView *loadingView, BOOL finished))completion;
+
+- (void)hideLoadingView;
 
 @end

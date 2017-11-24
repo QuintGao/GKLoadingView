@@ -14,6 +14,7 @@
 @property (nonatomic, strong) GKLoadingView *loadingView1;
 @property (nonatomic, strong) GKLoadingView *loadingView2;
 @property (nonatomic, strong) GKLoadingView *loadingView3;
+@property (nonatomic, strong) GKLoadingView *loadingView4;
 
 @property (nonatomic, strong) NSTimer *timer;
 @property (nonatomic, assign) CGFloat progress;
@@ -38,19 +39,20 @@
     CGRect loadingFrame = CGRectMake(100, 100, 100, 100);
     
     self.loadingView1 = [GKLoadingView loadingViewWithFrame:loadingFrame style:GKLoadingStyleIndeterminate];
-    self.loadingView1.trackColor = [UIColor whiteColor];
-    self.loadingView1.lineWidth  = 4;
-    self.loadingView1.radius     = 30;
+//    self.loadingView1.bgColor       = [[UIColor blackColor] colorWithAlphaComponent:0.3];
+//    self.loadingView1.strokeColor   = [UIColor whiteColor];
+//    self.loadingView1.lineWidth     = 4;
+//    self.loadingView1.radius        = 30;
     [self.view addSubview:self.loadingView1];
     [self.loadingView1.centerButton setImage:[UIImage imageNamed:@"dzq"] forState:UIControlStateNormal];
     
-    loadingFrame.origin.y += 200;
+    loadingFrame.origin.y += 100;
     
     self.loadingView2 = [GKLoadingView loadingViewWithFrame:loadingFrame style:GKLoadingStyleDeterminate];
-    self.loadingView2.trackColor    = [UIColor grayColor];
-    self.loadingView2.progressColor = [UIColor whiteColor];
-    self.loadingView2.lineWidth     = 4;
-    self.loadingView2.radius        = 30;
+//    self.loadingView2.bgColor       = [UIColor grayColor];
+//    self.loadingView2.strokeColor   = [UIColor whiteColor];
+//    self.loadingView2.lineWidth     = 4;
+//    self.loadingView2.radius        = 30;
     [self.view addSubview:self.loadingView2];
     [self.loadingView2.centerButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.loadingView2.progressChange = ^(GKLoadingView *loadingView, CGFloat progress) {
@@ -59,13 +61,13 @@
     };
     self.timer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(timerAction) userInfo:nil repeats:YES];
     
-    loadingFrame.origin.y    += 200;
+    loadingFrame.origin.y    += 100;
     
     self.loadingView3 = [GKLoadingView loadingViewWithFrame:loadingFrame style:GKLoadingStyleDeterminate];
-    self.loadingView3.trackColor    = [UIColor redColor];
-    self.loadingView3.progressColor = [UIColor whiteColor];
-    self.loadingView3.lineWidth     = 4;
-    self.loadingView3.radius        = 30;
+    self.loadingView3.bgColor       = [UIColor redColor];
+//    self.loadingView3.strokeColor   = [UIColor whiteColor];
+//    self.loadingView3.lineWidth     = 4;
+//    self.loadingView3.radius        = 30;
     
     [self.view addSubview:self.loadingView3];
     [self.loadingView3.centerButton setTitle:@"跳过" forState:UIControlStateNormal];
@@ -75,6 +77,11 @@
     [self.loadingView3 startLoadingWithDuration:5.0 completion:^(GKLoadingView *loadingView, BOOL finished) {
         [loadingView.centerButton setTitle:@"完成" forState:UIControlStateNormal];
     }];
+    
+    loadingFrame.origin.y += 100;
+    self.loadingView4 = [GKLoadingView loadingViewWithFrame:loadingFrame style:GKLoadingStyleIndeterminateMask];
+    
+    [self.view addSubview:self.loadingView4];
 }
 
 - (void)timerAction {
