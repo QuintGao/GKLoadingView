@@ -268,20 +268,6 @@
     return CGPointMake(xy, xy);
 }
 
-- (void)startLoadingWithDuration:(NSTimeInterval)duration completion:(void (^)(GKLoadingView *, BOOL))completion {
-    self.completion = completion;
-    
-    self.progress = 1.0;
-    
-    CABasicAnimation *pathAnimation     = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-    pathAnimation.duration              = duration;
-    pathAnimation.fromValue             = @(0.0);
-    pathAnimation.toValue               = @(1.0);
-    pathAnimation.removedOnCompletion   = YES;
-    pathAnimation.delegate              = self;
-    [self.animatedLayer addAnimation:pathAnimation forKey:nil];
-}
-
 - (void)startLoading {
     if (self.loadingStyle == GKLoadingStyleIndeterminate) {
         CABasicAnimation *rotateAnimation   = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
@@ -334,6 +320,20 @@
 - (void)hideLoadingView {
     [self.layer removeAllAnimations];
     [self removeFromSuperview];
+}
+
+- (void)startLoadingWithDuration:(NSTimeInterval)duration completion:(void (^)(GKLoadingView *, BOOL))completion {
+    self.completion = completion;
+    
+    self.progress = 1.0;
+    
+    CABasicAnimation *pathAnimation     = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+    pathAnimation.duration              = duration;
+    pathAnimation.fromValue             = @(0.0);
+    pathAnimation.toValue               = @(1.0);
+    pathAnimation.removedOnCompletion   = YES;
+    pathAnimation.delegate              = self;
+    [self.animatedLayer addAnimation:pathAnimation forKey:nil];
 }
 
 #pragma mark - CAAnimationDelegate
