@@ -11,13 +11,17 @@
 @interface GKLoadingView()<CAAnimationDelegate>
 
 // 动画layer
-@property (nonatomic, strong) CAShapeLayer *animatedLayer;
+@property (nonatomic, strong) CAShapeLayer      *animatedLayer;
 
-// 半径layer
-@property (nonatomic, strong) CAShapeLayer *backgroundLayer;
+// 背景layer
+@property (nonatomic, strong) CAShapeLayer      *backgroundLayer;
+
+// loadingStyle为GKLoadingStyleIndeterminateMask时使用
+@property (nonatomic, strong) CAGradientLayer   *gradientLayer;
+@property (nonatomic, strong) CAShapeLayer      *maskLayer;
 
 /** 加载方式 */
-@property (nonatomic, assign) GKLoadingStyle loadingStyle;
+@property (nonatomic, assign) GKLoadingStyle    loadingStyle;
 
 @property (nonatomic, copy) void(^completion)(GKLoadingView *loadingView, BOOL finished);
 
@@ -33,16 +37,16 @@
     if (self = [super initWithFrame:frame]) {
         self.backgroundColor = [UIColor clearColor];
         
-        self.loadingStyle   = loadingStyle;
-        
-        self.centerButton   = [UIButton new];
-        [self addSubview:self.centerButton];
-        
         // 设置默认值
         self.lineWidth      = 4;
         self.radius         = 24;
         self.bgColor        = [[UIColor blackColor] colorWithAlphaComponent:0.5];
         self.strokeColor    = [UIColor whiteColor];
+        
+        self.loadingStyle   = loadingStyle;
+        
+        self.centerButton   = [UIButton new];
+        [self addSubview:self.centerButton];
     }
     return self;
 }
@@ -170,21 +174,30 @@
 }
 
 - (void)setupIndeterminateMaskAnim:(CAShapeLayer *)layer {
-    CGPoint arcCenter = [self layerCenter];
+    // 模糊颜色
+    UIColor *blurColor = [self.strokeColor colorWithAlphaComponent:0.2];
+    UIColor *clearColor = self.strokeColor;
     
-    UIBezierPath *smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter
-                                                                radius:self.radius
-                                                            startAngle:(M_PI * 3 / 2)
-                                                              endAngle:(M_PI / 2 + M_PI * 5)
-                                                             clockwise:YES];
+    self.gradientLayer            = [CAGradientLayer layer];
+    self.gradientLayer.colors     = @[(__bridge id)blurColor.CGColor, (__bridge id)clearColor.CGColor];
+    self.gradientLayer.locations  = @[@0.2, @1.0];
+    self.gradientLayer.startPoint = CGPointMake(0, 0);
+    self.gradientLayer.endPoint   = CGPointMake(1.0, 0);
+    self.gradientLayer.frame      = layer.bounds;
+    [layer insertSublayer:self.gradientLayer atIndex:0];
     
-    layer.path = smoothedPath.CGPath;
+    CGFloat width  = layer.bounds.size.width;
+    CGFloat height = layer.bounds.size.height;
     
-    CALayer *maskLayer = [CALayer layer];
-    
-    maskLayer.contents  = (__bridge id)[[UIImage imageNamed:@"angle-mask"] CGImage];
-    maskLayer.frame     = layer.bounds;
-    layer.mask          = maskLayer;
+    self.maskLayer = [CAShapeLayer layer];
+    CGMutablePathRef pathRef = CGPathCreateMutable();
+    CGPathAddRelativeArc(pathRef, nil, width / 2, height / 2, width < height ? width / 2 - 6 : height / 2 - 6, 0, 2 * M_PI);
+    self.maskLayer.path = pathRef;
+    self.maskLayer.lineWidth = self.lineWidth;
+    self.maskLayer.fillColor = [UIColor clearColor].CGColor;
+    self.maskLayer.strokeColor = [UIColor whiteColor].CGColor;
+    CGPathRelease(pathRef);
+    layer.mask = self.maskLayer;
 }
 
 - (void)setupDeterminateAnim:(CAShapeLayer *)layer {
@@ -197,6 +210,21 @@
                                                              clockwise:YES];
     layer.path      = smoothedPath.CGPath;
     layer.strokeEnd = 0.0f;
+}
+
+- (UIImage *)changeImage:(UIImage *)img withColor:(UIColor *)color {
+    UIGraphicsBeginImageContextWithOptions(img.size, NO, img.scale);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextTranslateCTM(context, 0, img.size.height);
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextSetBlendMode(context, kCGBlendModeNormal);
+    CGRect rect = CGRectMake(0, 0, img.size.width, img.size.height);
+    CGContextClipToMask(context, rect, img.CGImage);
+    [color setFill];
+    CGContextFillRect(context, rect);
+    UIImage*newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
 }
 
 - (void)setFrame:(CGRect)frame {
@@ -214,6 +242,10 @@
     
     self.animatedLayer.lineWidth   = lineWidth;
     self.backgroundLayer.lineWidth = lineWidth;
+    
+    if (self.loadingStyle == GKLoadingStyleIndeterminateMask) {
+        self.maskLayer.lineWidth = lineWidth;
+    }
     
     [self layoutIfNeeded];
 }
@@ -246,6 +278,13 @@
     _strokeColor = strokeColor;
     
     self.animatedLayer.strokeColor = strokeColor.CGColor;
+    
+    if (self.loadingStyle == GKLoadingStyleIndeterminateMask) {
+        UIColor *blurColor = [strokeColor colorWithAlphaComponent:0.2];
+        UIColor *clearColor = strokeColor;
+        
+        self.gradientLayer.colors = @[(__bridge id)blurColor.CGColor, (__bridge id)clearColor.CGColor];
+    }
 }
 
 - (void)setProgress:(CGFloat)progress {
@@ -259,7 +298,7 @@
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-    CGFloat wh = (self.radius + self.lineWidth * 0.5 + 5 ) * 2;
+    CGFloat wh = (self.radius + self.lineWidth * 0.5 + 5) * 2;
     return CGSizeMake(wh, wh);
 }
 
@@ -280,36 +319,14 @@
         [self.animatedLayer addAnimation:rotateAnimation forKey:nil];
         
     }else if (self.loadingStyle == GKLoadingStyleIndeterminateMask) {
-        NSTimeInterval animationDuration   = 1;
-        CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-        
-        CABasicAnimation *animation   = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-        animation.fromValue           = @0;
-        animation.toValue             = @(M_PI * 2);
-        animation.duration            = animationDuration;
-        animation.timingFunction      = linearCurve;
+        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+        animation.duration = 1;
         animation.removedOnCompletion = NO;
-        animation.repeatCount         = HUGE;
-        animation.fillMode            = kCAFillModeForwards;
-        animation.autoreverses        = NO;
-        [self.animatedLayer.mask addAnimation:animation forKey:@"rotate"];
-        
-        CAAnimationGroup *animationGroup    = [CAAnimationGroup animation];
-        animationGroup.duration             = animationDuration;
-        animationGroup.repeatCount          = HUGE;
-        animationGroup.removedOnCompletion  = NO;
-        animationGroup.timingFunction       = linearCurve;
-        
-        CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
-        strokeStartAnimation.fromValue = @0.015;
-        strokeStartAnimation.toValue   = @0.515;
-        
-        CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-        strokeEndAnimation.fromValue = @0.485;
-        strokeEndAnimation.toValue   = @0.985;
-        
-        animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
-        [self.animatedLayer addAnimation:animationGroup forKey:@"progress"];
+        animation.fillMode = kCAFillModeForwards;
+        animation.repeatCount = HUGE_VALF;
+        animation.fromValue = @0.0f;
+        animation.toValue = @(2 * M_PI);
+        [self.animatedLayer addAnimation:animation forKey:@"rotate-layer"];
     }
 }
 

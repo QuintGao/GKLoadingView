@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6033898C2100A03800232BD5 /* CircleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6033898B2100A03800232BD5 /* CircleView.m */; };
+		603389922101750C00232BD5 /* AYAudioLoadingButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 603389902101750B00232BD5 /* AYAudioLoadingButton.m */; };
 		79C27EDA1FC6BB40002B5BF0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 79C27ED91FC6BB40002B5BF0 /* AppDelegate.m */; };
 		79C27EDD1FC6BB40002B5BF0 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 79C27EDC1FC6BB40002B5BF0 /* ViewController.m */; };
 		79C27EE01FC6BB40002B5BF0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79C27EDE1FC6BB40002B5BF0 /* Main.storyboard */; };
@@ -39,6 +41,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6033898A2100A03800232BD5 /* CircleView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CircleView.h; sourceTree = "<group>"; };
+		6033898B2100A03800232BD5 /* CircleView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CircleView.m; sourceTree = "<group>"; };
+		603389902101750B00232BD5 /* AYAudioLoadingButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AYAudioLoadingButton.m; sourceTree = "<group>"; };
+		603389912101750C00232BD5 /* AYAudioLoadingButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AYAudioLoadingButton.h; sourceTree = "<group>"; };
 		79C27ED51FC6BB40002B5BF0 /* GKLoadingView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GKLoadingView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79C27ED81FC6BB40002B5BF0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		79C27ED91FC6BB40002B5BF0 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -115,6 +121,10 @@
 				79C27ED91FC6BB40002B5BF0 /* AppDelegate.m */,
 				79C27EDB1FC6BB40002B5BF0 /* ViewController.h */,
 				79C27EDC1FC6BB40002B5BF0 /* ViewController.m */,
+				603389912101750C00232BD5 /* AYAudioLoadingButton.h */,
+				603389902101750B00232BD5 /* AYAudioLoadingButton.m */,
+				6033898A2100A03800232BD5 /* CircleView.h */,
+				6033898B2100A03800232BD5 /* CircleView.m */,
 				79C27EDE1FC6BB40002B5BF0 /* Main.storyboard */,
 				79C27EE11FC6BB40002B5BF0 /* Assets.xcassets */,
 				79C27EE31FC6BB40002B5BF0 /* LaunchScreen.storyboard */,
@@ -216,7 +226,7 @@
 		79C27ECD1FC6BB40002B5BF0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0910;
+				LastUpgradeCheck = 1330;
 				ORGANIZATIONNAME = QuintGao;
 				TargetAttributes = {
 					79C27ED41FC6BB40002B5BF0 = {
@@ -291,9 +301,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				79C27EDD1FC6BB40002B5BF0 /* ViewController.m in Sources */,
+				6033898C2100A03800232BD5 /* CircleView.m in Sources */,
 				79C27F0D1FC6BB86002B5BF0 /* GKLoadingView.m in Sources */,
 				79C27EE81FC6BB40002B5BF0 /* main.m in Sources */,
 				79C27EDA1FC6BB40002B5BF0 /* AppDelegate.m in Sources */,
+				603389922101750C00232BD5 /* AYAudioLoadingButton.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
